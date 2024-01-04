@@ -2,7 +2,7 @@ resource "aws_instance" "web" {
   #count = 11 # count.index is a special variable given by terraform
   count = length(var.instance_names)
   ami           = var.ami_id #devops-practice
-  instance_type = local.instance_type
+  instance_type = var.instance_names[count.index] == "mongoDB" || var.instance_names[count.index] == "mysql" || var.instance_names[count.index] == "shipping" ? "t3.small" : "t2.micro"
   tags = {
     Name = var.instance_names[count.index]
   }
@@ -15,5 +15,5 @@ resource "aws_route53_record" "www" {
   name    = "${var.instance_names[count.index]}.${var.domain_name}" #interpolaton
   type    = "A"
   ttl     = 1
-  records = [local.ip]
+  records = var.instance_names[count.index] == "web" ? aws_instance.web[count.index].public_ip : aws_instance.web[count.index].private_ip
 }
